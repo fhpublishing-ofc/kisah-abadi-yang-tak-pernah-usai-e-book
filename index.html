@@ -138,6 +138,11 @@
             z-index: 50;
             flex-direction: column;
             animation: fadeInFull 0.4s ease-out both;
+            transition: filter 0.2s ease;
+        }
+
+        .reader-interface.screenshot-blur {
+            filter: blur(25px) grayscale(90%);
         }
 
         header {
@@ -162,6 +167,7 @@
         }
 
         .preview-container {
+            position: relative;
             flex-grow: 1;
             width: 100%;
             height: 100%;
@@ -173,6 +179,16 @@
             align-items: center;
             gap: 25px;
             background: #111622;
+        }
+
+        /* Tameng transparan di atas gambar agar tidak bisa di-klik tahan / diunduh manual */
+        .preview-container::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0);
+            z-index: 99;
+            pointer-events: all;
         }
 
         .page-preview {
@@ -236,9 +252,9 @@
         <header>
             <div>
                 <h1 style="font-size: 15px; font-weight: 700; color: #60a5fa;">Kisah Abadi yang Tak Pernah Usai</h1>
-                <p style="font-size: 11px; color: #64748b;">FH Publishing Secure Preview v5.5</p>
+                <p style="font-size: 11px; color: #64748b;">FH Publishing Secure Preview v6.5</p>
             </div>
-            <span class="badge-protected">🔒 Preview Terenkripsi Maksimal</span>
+            <span class="badge-protected">🔒 Proteksi Total Aktif</span>
         </header>
 
         <div class="preview-container" id="previewContainer">
@@ -256,7 +272,7 @@
         let isReading = false;
         const DATA_AKUN = {};
 
-        // 32 Pola token berulang yang didapat tepat dari Admin Panel milikmu
+        // Pola token berulang yang sinkron dengan database Admin Panel
         const POLA_TOKEN = [
             "EF4VAT", "ZWXLDS", "LDSBGR", "7UM2KQ", "SBGRNP", "DSBGRN", "Y967UM", "KQZWXL",
             "67UM2K", "RNPC5J", "C5J38H", "XLDSBG", "J38HEF", "5J38HE", "QZWXLD", "BGRNPC",
@@ -264,21 +280,23 @@
             "NPC5J3", "967UM2", "UM2KQZ", "F4VATY", "2KQZWX", "M2KQZW", "8HEF4V", "TY967U"
         ];
 
-        // Looping pemetaan untuk 501 user agar kodenya sama persis dengan admin panel
         for (let i = 1; i <= 501; i++) {
             const indexPola = (i - 1) % 32; 
             DATA_AKUN[`user${i}`] = `FH-${POLA_TOKEN[indexPola]}`;
         }
 
-        // ================= LOADING PREVIEW 166 HALAMAN =================
+        // ================= LOADER SINKRONISASI GAMBAR BERURUTAN (001 - 166) =================
         function muatHalamanPreview() {
             const container = document.getElementById("previewContainer");
             let daftarGambar = "";
             const totalHalaman = 166; 
 
             for (let h = 1; h <= totalHalaman; h++) {
+                // Mengubah angka biasa menjadi string 3 digit berurutan (1 -> 001, 15 -> 015, 100 -> 100)
                 const nomorHalaman = String(h).padStart(3, '0');
-                daftarGambar += `<img src="E-BOOK_Kisah_Abadi_yang_Tak_pernah_Usai-page-${nomorHalaman}.jpg" class="page-preview" alt="Premium Page" loading="lazy">`;
+                
+                // Dimuat teratur sesuai urutan nama berkas gambar premium
+                daftarGambar += `<img src="E-BOOK_Kisah_Abadi_yang_Tak_pernah_Usai-page-${nomorHalaman}.jpg" class="page-preview" alt="Novel Halaman ${nomorHalaman}" loading="lazy">`;
             }
             container.innerHTML = daftarGambar;
         }
@@ -289,6 +307,8 @@
             
             if (DATA_AKUN[userIn] && DATA_AKUN[userIn] === passIn) {
                 isReading = true;
+                sessionStorage.setItem("authNovelSecure", "true");
+                
                 document.getElementById("loginBox").style.display = "none";
                 document.getElementById("readerInterface").style.display = "flex";
                 
@@ -302,18 +322,39 @@
             if (e.key === "Enter") { verifikasiAkses(); }
         });
 
-        // ================= PROSEDUR LOCK AKSES EKSTREM =================
+        // ================= PROSEDUR LOCK AKSES & PERINGATAN UNDUH =================
         function kunciAksesIlegal() {
             navigator.clipboard.writeText("");
             alert("Sistem Keamanan: Dilarang keras menyalin, mengunduh, atau mendokumentasikan aset premium!");
             document.getElementById("readerInterface").style.display = "none";
             document.getElementById("blockScreen").style.display = "flex";
             isReading = false;
+            sessionStorage.clear();
         }
 
+        // 1. BLUR KALO DI SCREENSHOT (KEHILANGAN FOKUS BROWSER)
+        window.addEventListener("blur", function() {
+            if (isReading) {
+                document.getElementById("readerInterface").classList.add("screenshot-blur");
+                setTimeout(() => { kunciAksesIlegal(); }, 300);
+            }
+        });
+
+        window.addEventListener("focus", function() {
+            if (isReading) {
+                document.getElementById("readerInterface").classList.remove("screenshot-blur");
+            }
+        });
+
+        // 2. PERINGATAN KALO MAU DI UNDUH / SIMPAN
         document.addEventListener("keydown", function(e) {
             if (e.key === "PrintScreen" || e.keyCode === 44) { e.preventDefault(); kunciAksesIlegal(); }
-            if (e.ctrlKey && (e.key === "p" || e.key === "s" || e.key === "c" || e.key === "a")) { e.preventDefault(); kunciAksesIlegal(); }
+            
+            if (e.ctrlKey && (e.key === "s" || e.key === "p" || e.key === "c" || e.key === "a")) { 
+                e.preventDefault(); 
+                alert("⚠️ Tindakan Ilegal: Dilarang mengunduh berkas atau mencetak halaman e-book!");
+                kunciAksesIlegal(); 
+            }
             if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) || (e.ctrlKey && e.key === "U")) {
                 e.preventDefault(); kunciAksesIlegal();
             }
@@ -322,10 +363,11 @@
         document.addEventListener("copy", (e) => { e.preventDefault(); kunciAksesIlegal(); });
         document.addEventListener("cut", (e) => { e.preventDefault(); kunciAksesIlegal(); });
 
+        // 3. RESET KALO KELUAR / SEGARKAN WEB (REFRESH)
         window.addEventListener("beforeunload", function (e) {
             if (isReading) {
                 e.preventDefault();
-                e.returnValue = "Sesi membaca Anda sedang berjalan.";
+                e.returnValue = "Sesi membaca Anda akan di-reset sepenuhnya.";
                 return e.returnValue;
             }
         });
