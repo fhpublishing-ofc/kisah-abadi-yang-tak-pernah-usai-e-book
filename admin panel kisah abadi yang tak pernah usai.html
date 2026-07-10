@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Token | FH Publishing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* RESET & BASE STYLES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ANIMASI MASUK UTAMA */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* CONTAINER UTAMA (GLASSMORPHISM) */
+        .admin-box {
+            width: 100%;
+            max-width: 650px;
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 30px 25px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+            position: relative;
+        }
+
+        /* EFEK GLOWING BACKGROUND DECORATION */
+        .admin-box::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(135deg, #3b82f6, #10b981);
+            border-radius: 20px;
+            z-index: -1;
+            filter: blur(25px);
+            opacity: 0.15;
+            animation: pulseGlow 4s infinite ease-in-out;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            background: linear-gradient(135deg, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        /* FITUR PENCARIAN MODERN */
+        .search-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .search-group input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .search-group input:focus {
+            border-color: #34d399;
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
+        }
+
+        /* KOTAK TEMPAT TOKEN */
+        .token-container {
+            max-height: 55vh;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            scrollbar-width: thin;
+            scrollbar-color: #334155 rgba(0,0,0,0);
+        }
+
+        /* Desain Scrollbar untuk HP/Browser */
+        .token-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .token-container::-webkit-scrollbar-thumb {
+            background-color: #334155;
+            border-radius: 10px;
+        }
+
+        /* BARIS DAFTAR USER & ANIMASI HOVER */
+        .token-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-family: monospace;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            border-radius: 6px;
+        }
+
+        .token-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateX(4px);
+        }
+
+        .token-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info {
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .token-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .token-info {
+            color: #34d399;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: rgba(52, 211, 153, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(52, 211, 153, 0.15);
+        }
+
+        /* TOMBOL SALIN PREMIUM */
+        .btn-copy {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-family: "Inter", sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+        }
+
+        .btn-copy:hover {
+            background: #1d4ed8;
+            transform: scale(1.03);
+        }
+
+        .btn-copy:active {
+            background: #059669;
+            transform: scale(0.97);
+        }
+
+        /* NOTIFIKASI TOAST DENGAN ANIMASI SLIDE UP */
+        .toast {
+            position: fixed;
+            bottom: -60px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 9999;
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show {
+            bottom: 30px;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-box">
+        <h1>Token Kisah Abadi yang Tak Pernah Usai</h1>
+        <p class="subtitle">FH Publishing Owner Dashboard • Total 501 Akses Premium</p>
+
+        <!-- Kolom Cari Otomatis -->
+        <div class="search-group">
+            <input type="text" id="searchInput" onkeyup="cariUser()" placeholder="Cari ID pengguna (misal: 250 atau user250)...">
+        </div>
+
+        <!-- Wadah List Token -->
+        <div class="token-container" id="tokenListMaster">
+            <!-- Data otomatis dimuat lengkap oleh JavaScript -->
+        </div>
+    </div>
+
+    <!-- Toast Alert Box -->
+    <div class="toast" id="toastAlert">✅ Format teks akun berhasil disalin!</div>
+
+    <script>
+        // ================= ENGINE GENERATOR 501 TOKEN ASLI =================
+        const tokenListMaster = document.getElementById("tokenListMaster");
+
+        function generateSecureToken(index) {
+            const karakter = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; 
+            let token = "";
+            let seed = index * 1234567;
+            for (let i = 0; i < 6; i++) {
+                seed = (seed * 9301 + 49297) % 233280;
+                const posisi = Math.abs(seed) % karakter.length;
+                token += karakter.charAt(posisi);
+            }
+            return `FH-${token}`;
+        }
+
+        // Memuat seluruh baris 1-501 ke dalam dokumen secara instan
+        let elemenHTML = "";
+        for (let i = 1; i <= 501; i++) {
+            const username = `user${i}`;
+            const tokenHasil = generateSecureToken(i);
+
+            elemenHTML += `
+                <div class="token-item" data-username="${username}">
+                    <div class="user-info">👤 <b>${username}</b></div>
+                    <div class="token-wrapper">
+                        <span class="token-info">${tokenHasil}</span>
+                        <button class="btn-copy" onclick="salinKeClipboard('${username}', '${tokenHasil}')">Salin</button>
+                    </div>
+                </div>
+            `;
+        }
+        tokenListMaster.innerHTML = elemenHTML;
+
+        // ================= FITUR LIVE PENCARIAN DATA NYATU =================
+        function cariUser() {
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const items = document.getElementsByClassName("token-item");
+
+            for (let i = 0; i < items.length; i++) {
+                const namaUser = items[i].getAttribute("data-username");
+                if (namaUser.includes(input)) {
+                    items[i].style.display = "flex";
+                } else {
+                    items[i].style.display = "none";
+                }
+            }
+        }
+
+        // ================= FITUR SALIN + ANIMASI POP TOAST =================
+        function salinKeClipboard(user, token) {
+            const teksFormatSewa = `Detail Akun Novel Premium kamu:\nUsername: ${user}\nPassword/Token: ${token}`;
+            
+            // Clipboard API modern untuk salin otomatis di HP
+            const elDummy = document.createElement('textarea');
+            elDummy.value = teksFormatSewa;
+            document.body.appendChild(elDummy);
+            elDummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(elDummy);
+
+            // Trigger Efek Animasi Muncul Toast Smooth
+            const toast = document.getElementById("toastAlert");
+            toast.classList.add("show");
+            
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
