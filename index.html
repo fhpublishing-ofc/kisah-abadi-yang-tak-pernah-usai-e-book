@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* PROTEKSI TOTAL: Anti-Copy, Anti-Blok, Anti-Klik Kanan, Anti-Drag */
+        /* PROTEKSI TOTAL: Anti-Copy, Anti-Blok, Anti-Klik Kanan, Anti-Drag Gambar */
         * {
             margin: 0;
             padding: 0;
@@ -19,6 +19,7 @@
             -ms-user-select: none;
             user-select: none;
             -webkit-user-drag: none;
+            -webkit-touch-callout: none;
         }
 
         body {
@@ -128,18 +129,11 @@
             transform: scale(1.02);
         }
 
-        .btn-login:active {
-            transform: scale(0.98);
-        }
-
-        /* ================= STYLE: INTERFACE PDF READER FULL LAYAR ================= */
+        /* ================= STYLE: INTERFACE FULL PAGE PREVIEW ================= */
         .reader-interface {
             display: none;
             position: fixed;
-            top: 0; 
-            left: 0; 
-            width: 100vw;  
-            height: 100vh; 
+            top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: #0b0f19;
             z-index: 50;
             flex-direction: column;
@@ -154,6 +148,7 @@
             padding: 12px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             background-color: #121826;
+            z-index: 60;
         }
 
         .badge-protected {
@@ -166,20 +161,31 @@
             font-weight: 600;
         }
 
-        .pdf-container {
+        .preview-container {
             flex-grow: 1;
             width: 100%;
             height: 100%;
-            background: #0b0f19;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            background: #111622;
         }
 
-        iframe {
+        .page-preview {
             width: 100%;
-            height: 100%;
-            border: none;
+            max-width: 750px;
+            height: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            background-color: #fff;
+            pointer-events: none;
         }
 
-        /* ================= STYLE: SCREEN LOCKER (BLOKIR AKSES) ================= */
+        /* ================= STYLE: SCREEN LOCKER ================= */
         .block-screen {
             display: none;
             position: fixed;
@@ -199,29 +205,16 @@
             padding: 40px 30px;
             border-radius: 16px;
             max-width: 450px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .block-box h2 {
-            color: #ef4444;
-            font-size: 22px;
-            margin-bottom: 12px;
-        }
+        .block-box h2 { color: #ef4444; font-size: 22px; margin-bottom: 12px; }
+        .block-box p { color: #94a3b8; font-size: 14px; line-height: 1.6; }
 
-        .block-box p {
-            color: #94a3b8;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        @media print {
-            body { display: none !important; }
-        }
+        @media print { body { display: none !important; } }
     </style>
 </head>
 <body oncontextmenu="return false;" ondragstart="return false;" ondrop="return false;">
 
-    <!-- 1. KOTAK LOGIN -->
     <div class="login-container" id="loginBox">
         <h2>FH Publishing Portal</h2>
         <p>Silakan masuk untuk membaca akses premium Anda.</p>
@@ -239,73 +232,69 @@
         <button class="btn-login" onclick="verifikasiAkses()">Buka E-Book</button>
     </div>
 
-    <!-- 2. POPUP INTERFACE UTAMA: FILE PDF NOVEL FULL LAYAR -->
     <div class="reader-interface" id="readerInterface">
         <header>
             <div>
                 <h1 style="font-size: 15px; font-weight: 700; color: #60a5fa;">Kisah Abadi yang Tak Pernah Usai</h1>
-                <p style="font-size: 11px; color: #64748b;">FH Publishing Secure Viewer v4.0</p>
+                <p style="font-size: 11px; color: #64748b;">FH Publishing Secure Preview v5.5</p>
             </div>
-            <span class="badge-protected">🔒 Proteksi Keamanan Maksimal</span>
+            <span class="badge-protected">🔒 Preview Terenkripsi Maksimal</span>
         </header>
 
-        <div class="pdf-container">
-            <iframe id="pdfViewer" src=""></iframe>
-        </div>
+        <div class="preview-container" id="previewContainer">
+            </div>
     </div>
 
-    <!-- 3. LAYAR PENYITAAN AKSES (JIKA MELANGGAR) -->
     <div class="block-screen" id="blockScreen">
         <div class="block-box">
             <h2>⚠️ Akses Diblokir Otomatis</h2>
-            <p>Sistem mendeteksi adanya tindakan ilegal pencurian aset digital (screenshot/key-logging/salin data). Hubungi admin FH Publishing untuk memulihkan akun Anda.</p>
+            <p>Sistem mendeteksi tindakan ilegal pencurian berkas digital (screenshot/save image/inspect). Sesi Anda telah dihentikan oleh sistem keamanan.</p>
         </div>
     </div>
 
     <script>
-        // STATUS BACA (Untuk mendeteksi apakah pembeli sudah berhasil masuk ke novel)
         let isReading = false;
-
-        // ================= ENGINE GENERATOR DATA AKUN =================
         const DATA_AKUN = {};
 
-        function generateSecureToken(index) {
-            const karakter = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; 
-            let token = "";
-            let seed = index * 1234567;
-            for (let i = 0; i < 6; i++) {
-                seed = (seed * 9301 + 49297) % 233280;
-                const posisi = Math.abs(seed) % karakter.length;
-                token += karakter.charAt(posisi);
-            }
-            return `FH-${token}`;
-        }
+        // 32 Pola token berulang yang didapat tepat dari Admin Panel milikmu
+        const POLA_TOKEN = [
+            "EF4VAT", "ZWXLDS", "LDSBGR", "7UM2KQ", "SBGRNP", "DSBGRN", "Y967UM", "KQZWXL",
+            "67UM2K", "RNPC5J", "C5J38H", "XLDSBG", "J38HEF", "5J38HE", "QZWXLD", "BGRNPC",
+            "WXLDSB", "HEF4VA", "4VATY9", "PC5J38", "ATY967", "VATY96", "GRNPC5", "38HEF4",
+            "NPC5J3", "967UM2", "UM2KQZ", "F4VATY", "2KQZWX", "M2KQZW", "8HEF4V", "TY967U"
+        ];
 
+        // Looping pemetaan untuk 501 user agar kodenya sama persis dengan admin panel
         for (let i = 1; i <= 501; i++) {
-            const username = `user${i}`;
-            DATA_AKUN[username] = generateSecureToken(i);
+            const indexPola = (i - 1) % 32; 
+            DATA_AKUN[`user${i}`] = `FH-${POLA_TOKEN[indexPola]}`;
         }
 
-        // ================= VERIFIKASI AKSES =================
+        // ================= LOADING PREVIEW 166 HALAMAN =================
+        function muatHalamanPreview() {
+            const container = document.getElementById("previewContainer");
+            let daftarGambar = "";
+            const totalHalaman = 166; 
+
+            for (let h = 1; h <= totalHalaman; h++) {
+                const nomorHalaman = String(h).padStart(3, '0');
+                daftarGambar += `<img src="E-BOOK_Kisah_Abadi_yang_Tak_pernah_Usai-page-${nomorHalaman}.jpg" class="page-preview" alt="Premium Page" loading="lazy">`;
+            }
+            container.innerHTML = daftarGambar;
+        }
+
         function verifikasiAkses() {
             const userIn = document.getElementById("username").value.trim().toLowerCase();
             const passIn = document.getElementById("password").value.trim().toUpperCase();
             
-            const loginBox = document.getElementById("loginBox");
-            const readerInterface = document.getElementById("readerInterface");
-            const pdfViewer = document.getElementById("pdfViewer");
-
             if (DATA_AKUN[userIn] && DATA_AKUN[userIn] === passIn) {
-                isReading = true; // Set status sedang membaca aktif
-                loginBox.style.display = "none";
-                readerInterface.style.display = "flex";
-
-                // Memanggil file dengan parameter proteksi toolbar, download, dan print bawaan browser
-                const pdfPath = "E-BOOK_Kisah_Abadi_yang_Tak_pernah_Usai.pdf#toolbar=0&navpanes=0&scrollbar=1&statusbar=0&messages=0";
-                pdfViewer.src = pdfPath;
-                pdfViewer.contentWindow.location.replace(pdfPath);
+                isReading = true;
+                document.getElementById("loginBox").style.display = "none";
+                document.getElementById("readerInterface").style.display = "flex";
+                
+                muatHalamanPreview();
             } else {
-                alert("Peringatan: Username atau Token yang Anda masukkan salah! Periksa kembali data Anda.");
+                alert("Peringatan: Username atau Token salah! Periksa kembali database Admin Panel Anda.");
             }
         }
 
@@ -313,44 +302,30 @@
             if (e.key === "Enter") { verifikasiAkses(); }
         });
 
-        // ================= BLOKIR AKSES TOTAL & PERINGATAN =================
+        // ================= PROSEDUR LOCK AKSES EKSTREM =================
         function kunciAksesIlegal() {
-            navigator.clipboard.writeText(""); // Bersihkan isi clipboard dari salinan data
-            alert("Dilarang keras mengambil screenshot, menyalin teks, atau mengunduh aset premium!");
+            navigator.clipboard.writeText("");
+            alert("Sistem Keamanan: Dilarang keras menyalin, mengunduh, atau mendokumentasikan aset premium!");
             document.getElementById("readerInterface").style.display = "none";
             document.getElementById("blockScreen").style.display = "flex";
             isReading = false;
         }
 
-        // 1. Blokir Kombinasi Tombol (Screenshot, Salin, Cetak, Download, DevTools)
         document.addEventListener("keydown", function(e) {
-            // Deteksi PrintScreen
-            if (e.key === "PrintScreen" || e.keyCode === 44) {
-                e.preventDefault();
-                kunciAksesIlegal();
-            }
-            // Deteksi Salin (Ctrl+C), Simpan/Download (Ctrl+S), Cetak (Ctrl+P), Blok Semua (Ctrl+A)
-            if (e.ctrlKey && (e.key === "p" || e.key === "s" || e.key === "c" || e.key === "a")) { 
-                e.preventDefault();
-                kunciAksesIlegal();
-            }
-            // Deteksi F12, Inspect Element (Ctrl+Shift+I/J/C), dan View Source (Ctrl+U)
+            if (e.key === "PrintScreen" || e.keyCode === 44) { e.preventDefault(); kunciAksesIlegal(); }
+            if (e.ctrlKey && (e.key === "p" || e.key === "s" || e.key === "c" || e.key === "a")) { e.preventDefault(); kunciAksesIlegal(); }
             if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) || (e.ctrlKey && e.key === "U")) {
-                e.preventDefault();
-                kunciAksesIlegal();
+                e.preventDefault(); kunciAksesIlegal();
             }
         });
 
-        // 2. Blokir Fitur Salin/Copy & Potong/Cut Lewat Menu Browser/HP
         document.addEventListener("copy", (e) => { e.preventDefault(); kunciAksesIlegal(); });
         document.addEventListener("cut", (e) => { e.preventDefault(); kunciAksesIlegal(); });
 
-        // 3. BLOKIR KELUAR / REFRESH WEB (Mencegah Kehilangan Sesi / Bypass)
         window.addEventListener("beforeunload", function (e) {
             if (isReading) {
-                // Menampilkan dialog konfirmasi bawaan browser untuk mencegah refresh/pindah halaman
                 e.preventDefault();
-                e.returnValue = "Apakah Anda yakin ingin keluar? Sesi membaca Anda akan terkunci.";
+                e.returnValue = "Sesi membaca Anda sedang berjalan.";
                 return e.returnValue;
             }
         });
